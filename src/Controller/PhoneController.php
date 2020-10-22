@@ -51,7 +51,7 @@ class PhoneController extends AbstractController
     {
         $page = $request->query->get('page');
 
-        if(is_null($page) || $page < 1) {
+        if($page === null || $page < 1) {
             $page = 1;
         }
 
