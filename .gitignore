@@ -50,3 +50,13 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# Php storm files
+.idea
+
+# MacOs files
+.DS_STORE
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
