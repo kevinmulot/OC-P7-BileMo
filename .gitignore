@@ -56,3 +56,7 @@
 
 # MacOs files
 .DS_STORE
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
