@@ -18,6 +18,7 @@
 # Logs (Symfony4)
 /var/log/*
 !var/log/.gitkeep
+/public/bundles
 
 # Parameters
 /app/config/parameters.yml
