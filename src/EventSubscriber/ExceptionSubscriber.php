@@ -3,38 +3,33 @@
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Event;
 
 
-/**
- *
- * @package App\EventSubscriber
- */
 class ExceptionSubscriber implements EventSubscriberInterface
 {
-    /**
-     * @param ExceptionEvent $event
-     */
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
-        if($exception instanceof NotFoundHttpException) {
-            $data = [
-                'status' => $exception->getCode(),
-                'message' => 'Resource not found'
-            ];
 
-
-            $response = new JsonResponse($data);
-
-            $event->setResponse($response);
+        if (method_exists($exception, 'getStatusCode')) {
+            $status = $exception->getStatusCode();
         }
+        else {
+            $status = 500;
+        }
+
+        $data = [
+            'status' => $status,
+            'message' => $exception->getMessage()
+        ];
+
+        $response = new JsonResponse($data);
+        $event->setResponse($response);
     }
 
-    /**
-     * @return array|string[]
-     */
     public static function getSubscribedEvents()
     {
         return [

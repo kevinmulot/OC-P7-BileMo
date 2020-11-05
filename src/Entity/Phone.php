@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=PhoneRepository::class)
+ * @Serializer\ExclusionPolicy("All")
  */
 class Phone
 {
@@ -16,29 +17,36 @@ class Phone
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"list", "show"})
+     * @Serializer\Groups({"list", "show"})
+     *
+     * @Serializer\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"list", "show"})
+     * @Serializer\Groups({"list", "show"})
      * @Assert\NotBlank()
      * @Assert\Length(min="2", max="255")
+     *
+     * @Serializer\Expose
      */
     private $name;
 
     /**
      * @ORM\Column(type="text")
-     * @Groups({"show"})
+     * @Serializer\Groups({"show"})
+     *@Serializer\Expose
      */
     private $description;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"show"})
+     * @Serializer\Groups({"show"})
      * @Assert\NotBlank()
      * @Assert\Range(min="0", max="1500")
+     *
+     * @Serializer\Expose
      */
     private $price;
 
