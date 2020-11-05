@@ -4,10 +4,13 @@ namespace App\Entity;
 
 use App\Repository\ClientRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=ClientRepository::class)
+ *@Serializer\ExclusionPolicy("All")
  */
 class Client implements UserInterface
 {
@@ -15,29 +18,39 @@ class Client implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     *
+     * @Serializer\Groups({"list", "show"})
+     *
+     * @Serializer\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Assert\NotBlank()
+     * @Assert\Length(min="2")
+     * @Serializer\Groups({"list", "show"})
+     *
+     * @Serializer\Expose
      */
     private $username;
 
     /**
      * @ORM\Column(type="json")
+     *
+     * @Serializer\Groups({"show"})
+     *
+     * @Serializer\Expose
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Assert\NotBlank()
+     * @Assert\Length(min="4")
      */
     private $password;
-
-    public function __construct($username)
-    {
-        $this->username = $username;
-    }
 
     public function getId(): ?int
     {
@@ -88,7 +101,7 @@ class Client implements UserInterface
         return (string) $this->password;
     }
 
-    public function setPassword($password): self
+    public function setPassword(string $password): self
     {
         $this->password = $password;
 
