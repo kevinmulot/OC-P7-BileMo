@@ -2,7 +2,7 @@
 My seventh OpenClassRooms Project with PHP/Symphony.
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/71d0962974834783bcf51671bf44f6f6)](https://www.codacy.com/gh/kevinmulot/OC-P7-BileMo/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kevinmulot/OC-P7-BileMo&amp;utm_campaign=Badge_Grade)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/c31ab97e077166298e97/test_coverage)](https://codeclimate.com/github/kevinmulot/OC-P7-BileMo/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/c31ab97e077166298e97/maintainability)](https://codeclimate.com/github/kevinmulot/OC-P7-BileMo/maintainability)
 ![OenClassRooms](https://img.shields.io/badge/OpenClassRooms-DA_PHP/SF-blue.svg)
 ![Project](https://img.shields.io/badge/Project-7-blue.svg)
 
@@ -46,4 +46,3 @@ Pull Requests can be created here.
 Code released under the MIT License.
 
 [![GitHub License](https://img.shields.io/github/license/kevinmulot/OC-P7-BileMo.svg?label=License)](https://github.com/kevinmulot/OC-P7-BileMo/blob/master/LICENSE.md)
-

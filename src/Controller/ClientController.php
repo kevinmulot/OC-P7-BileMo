@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Phone;
-use App\Repository\PhoneRepository;
+use App\Entity\Client;
+use App\Repository\ClientRepository;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Cache\InvalidArgumentException;
@@ -20,16 +20,16 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
- * @Route("/api/phones", name="phone")
+ * @Route("/api/clients", name="client")
  */
-class PhoneController extends AbstractController
+class ClientController extends AbstractController
 {
     private $repo;
     private $paginate;
 
-    public function __construct(PhoneRepository $phoneRepository, PaginatorInterface $paginator)
+    public function __construct(ClientRepository $clientRepository, PaginatorInterface $paginator)
     {
-        $this->repo     = $phoneRepository;
+        $this->repo     = $clientRepository;
         $this->paginate = $paginator;
     }
 
@@ -42,7 +42,7 @@ class PhoneController extends AbstractController
      * @throws InvalidArgumentException
      * @Rest\Get(
      *     path="/",
-     *     name="phone_list"
+     *     name="client_list"
      * )
      * @Rest\View(
      *     statusCode= 200,
@@ -50,14 +50,14 @@ class PhoneController extends AbstractController
      * )
      *
      * @SWG\Get(
-     *     @SWG\Response(response="200", description="Return a list of phones")
+     *     @SWG\Response(response="200", description="Return a list of clients")
      * )
      */
-    public function listPhones(CacheInterface $cache, Request $request)
+    public function listClients(CacheInterface $cache, Request $request)
     {
         $page = $request->query->getInt('page', 1);
 
-        $value = $cache->get('phone_list'.$page, function (ItemInterface $item)
+        $value = $cache->get('client_list'.$page, function (ItemInterface $item)
         use ($page) {
             $item->expiresAfter(3600);
 
@@ -80,24 +80,24 @@ class PhoneController extends AbstractController
      * @throws InvalidArgumentException
      * @Rest\Get(
      *     path="/{id}",
-     *     name="show_phone",
+     *     name="show_client",
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View(statusCode= 200, serializerGroups={"show"})
      *
      * @SWG\Get(
-     *     @SWG\Response(response="200", description="Return phone details")
+     *     @SWG\Response(response="200", description="Return a client details")
      * )
      * @SWG\Parameter(
      *     name="id",
      *     in="path",
      *     type="number",
-     *     description="The id of the product"
+     *     description="The id of the client"
      * )
      */
-    public function showPhone($id, CacheInterface $cache)
+    public function showClient($id, CacheInterface $cache)
     {
-        return $cache->get('phone_show'.$id, function (ItemInterface $item) use ($id) {
+        return $cache->get('client_show'.$id, function (ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
 
             return $this->repo->find($id);
@@ -105,72 +105,11 @@ class PhoneController extends AbstractController
     }
 
     /**
-     * @param Phone $phone
-     * @param EntityManagerInterface $manager
-     * @param ValidatorInterface $validator
-     *
-     * @return Phone
-     * @throws Exception
-     * @Rest\Post(
-     *     path="/",
-     *     name="add_phone"
-     * )
-     * @Rest\View(statusCode= 201)
-     * @ParamConverter("phone", converter="fos_rest.request_body")
-     * @SWG\Parameter(
-     *     name="name",
-     *     in="body",
-     *     type="string",
-     *     description="Name",
-     *     required=true,
-     *     @SWG\Schema(
-     *          @SWG\Property(property="name", type="string")
-     *     )
-     * )
-     * @SWG\Parameter(
-     *     name="price",
-     *     in="body",
-     *     type="integer",
-     *     description="Price",
-     *     required=true,
-     *     @SWG\Schema(
-     *          @SWG\Property(property="price", type="integer")
-     *     )
-     * )
-     * @SWG\Parameter(
-     *     name="description",
-     *     in="body",
-     *     type="string",
-     *     description="Description",
-     *     required=true,
-     *     @SWG\Schema(
-     *          @SWG\Property(property="Description", type="string")
-     *     )
-     * )
-     * @SWG\Post(
-     *     @SWG\Response(response="201", description="Return a new phone")
-     * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
-     */
-    public function addPhone(Phone $phone, EntityManagerInterface $manager, ValidatorInterface $validator): Phone
-    {
-        $errors = $validator->validate($phone);
-        if(count($errors)) {
-            throw new \RuntimeException($errors);
-        }
-
-        $manager->persist($phone);
-        $manager->flush();
-
-        return $phone;
-    }
-
-    /**
-     * @param Phone $phone
+     * @param Client $client
      * @param EntityManagerInterface $manager
      * @Rest\Delete(
      *     path="/{id}",
-     *     name="delete_phone",
+     *     name="delete_client",
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View(statusCode= 204)
@@ -178,47 +117,48 @@ class PhoneController extends AbstractController
      * @Security("is_granted('ROLE_SUPERADMIN')")
      *
      * @SWG\Delete(
-     *     @SWG\Response(response="204", description="Delete a specific phone")
+     *     @SWG\Response(response="204", description="Delete a specific client")
      * )
      * @SWG\Parameter(
      *     name="id",
      *     in="path",
      *     type="number",
-     *     description="The id of the phone"
+     *     description="The id of the client"
      * )
      * @Security("is_granted('ROLE_SUPERADMIN')")
      */
-    public function deletePhone(Phone $phone, EntityManagerInterface $manager): void
+    public function deleteClient(Client $client, EntityManagerInterface $manager): void
     {
-        $manager->remove($phone);
+        $manager->remove($client);
         $manager->flush();
     }
 
     /**
      * @param EntityManagerInterface $manager
      * @param $id
-     * @param Phone $phone
+     * @param Client $client
      * @param ValidatorInterface $validator
-     * @return Phone|object|null
+     * @param UserPasswordEncoderInterface $encoder
+     * @return Client|object|null
      * @Rest\Patch(
      *     path="/{id}",
-     *     name="phone_update",
+     *     name="client_update",
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View(statusCode= 200)
      *
      * @SWG\Patch(
-     *     @SWG\Response(response="200", description="Update phone")
+     *     @SWG\Response(response="200", description="Update client")
      * )
-     * @ParamConverter("phone", converter="fos_rest.request_body")
+     * @ParamConverter("client", converter="fos_rest.request_body")
      * @SWG\Parameter(
      *     name="id",
      *     in="path",
      *     type="number",
-     *     description="The id of the phone"
+     *     description="The id of the client"
      * )
      * @SWG\Parameter(
-     *     name="name",
+     *     name="username",
      *     in="body",
      *     type="string",
      *     description="Name",
@@ -228,41 +168,40 @@ class PhoneController extends AbstractController
      *     )
      * )
      * @SWG\Parameter(
-     *     name="price",
+     *     name="password",
      *     in="body",
-     *     type="integer",
-     *     description="Price",
+     *     type="string",
+     *     description="Password",
      *     required=true,
      *     @SWG\Schema(
      *          @SWG\Property(property="price", type="integer")
      *     )
      * )
      * @SWG\Parameter(
-     *     name="description",
+     *     name="role",
      *     in="body",
      *     type="string",
-     *     description="Description",
+     *     description="Role",
      *     required=true,
      *     @SWG\Schema(
      *          @SWG\Property(property="Description", type="string")
      *     )
      * )
      * @Security("is_granted('ROLE_SUPERADMIN')")
-     * @throws Exception
      */
-    public function patchPhone(EntityManagerInterface $manager, $id, Phone $phone, ValidatorInterface $validator)
+    public function patchClient(EntityManagerInterface $manager, $id, Client $client, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder)
     {
-        $result = $manager->getRepository(Phone::class)->findOneBy(['id' => $id]);
+        $result = $manager->getRepository(Client::class)->findOneBy(['id' => $id]);
 
         $errors = $validator->validate($result);
         if (count($errors)) {
             throw new \RuntimeException('Invalid argument(s) detected');
         }
 
-        $result->setPrice($phone->getPrice());
-        $result->setDescription($phone->getDescription());
-        $result->setName($phone->getName());
-        
+        $result->setUsername($client->getUsername());
+        $result->setPassword($encoder->encodePassword($client, $client->getPassword()));
+        $result->setRoles([$client->getRoles()]);
+
         $manager->persist($result);
         $manager->flush();
 
