@@ -35,7 +35,7 @@ class User implements UserInterface
     private $username;
 
     /**
-     * @ORM\Column(type="string", length=180, unique=true)
+     * @ORM\Column(type="string", length=180)
      * @Assert\NotBlank()
      * @Assert\Length(min="2")
      * @Serializer\Groups({"show"})
@@ -45,7 +45,7 @@ class User implements UserInterface
     private $firstName;
 
     /**
-     * @ORM\Column(type="string", length=180, unique=true)
+     * @ORM\Column(type="string", length=180)
      * @Assert\NotBlank()
      * @Assert\Length(min="2")
      * @Serializer\Groups({"show"})
@@ -84,6 +84,29 @@ class User implements UserInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Client", inversedBy="users")
+     */
+    private $client;
+
+    /**
+     * @return mixed
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
+     * @param mixed $client
+     * @return User
+     */
+    public function setClient($client): User
+    {
+        $this->client = $client;
+        return $this;
     }
 
     /**

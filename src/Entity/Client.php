@@ -52,6 +52,12 @@ class Client implements UserInterface
      */
     private $password;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\User", mappedBy="client")
+     *
+     */
+    private $users;
+
     public function getId(): ?int
     {
         return $this->id;
