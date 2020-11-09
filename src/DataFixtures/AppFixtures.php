@@ -13,9 +13,14 @@ class AppFixtures extends Fixture
 {
     private $phoneNames = ['iPhone', 'Samsung', 'Nokia', 'Huawei'];
 
-    private $clientNames = ['','', '', ''];
+    private $firstNames = ['Kevin','John', 'Bob', 'Samuel', 'Cedric', 'Etienne', 'Jean', 'Marc', 'Romain', 'Tom'];
 
-    private $userNames = ['','', '', ''];
+    private $lastNames = ['Wick','Weak', 'London', 'Paris', 'Tokyo', 'Mulot', 'Briant', 'Curry','Mandela', 'Dream'];
+
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $encoder;
 
     public function __construct(UserPasswordEncoderInterface $encoder)
     {
@@ -24,32 +29,40 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        for($i = 1; $i <= 20; $i++) {
-            $phone = new Phone();
-            $phone->setName($this->phoneNames[random_int(0,1)]. ' ' . random_int(5, 8));
-            $phone->setPrice(random_int(500, 1000));
-            $phone->setDescription('A wonderful phone with ' . random_int(10, 50) . ' tricks');
+        $client = new Client();
+        $client->setUsername('keimuo');
+        $client->setPassword($this->encoder->encodePassword($client, 'blackberry'));
+        $client->setRoles(['ROLE_SUPERADMIN']);
 
-            $manager->persist($phone);
-        }
+        $manager->persist($client);
+
             for ($i = 1; $i <= 20; $i++) {
+                $phone = new Phone();
+                $phone->setName($this->phoneNames[random_int(0,3)]. ' ' . random_int(5, 8));
+                $phone->setPrice(random_int(500, 1000));
+                $phone->setDescription('A wonderful phone with ' . random_int(10, 50) . ' tricks');
+
+                $manager->persist($phone);
+
                 $client = new Client();
-                $client->setUsername($this->clientNames[random_int(0, 1)] . ' ' . random_int(5, 8));
-                $client->setPassword($encoder->encodePassword($client, $client->getPassword()));
+                $client->setUsername('client' . $i);
+                $client->setPassword($this->encoder->encodePassword($client, 'clientpass'));
                 $client->setRoles(['ROLE_ADMIN']);
 
                 $manager->persist($client);
-            }
 
-            for ($i = 1; $i <= 20; $i++) {
                 $user = new User();
-                $user->setFirstName($this->userNames[random_int(0, 1)] . ' ' . random_int(5, 8));
-                $user->setLastName(random_int(500, 1000));
-                $user->setEmail('A wonderful phone with ' . random_int(10, 50) . ' tricks');
-                $user->setPassword($encoder->encodePassword($user, $user->getPassword()));
+                $user->setUsername('user' . $i);
+                $user->setFirstName($this->firstNames[random_int(0, 9)]);
+                $user->setLastName($this->lastNames[random_int(0, 9)]);
+                $user->setEmail('usermail' . $i . '@hotmail.fr');
+                $user->setPassword($this->encoder->encodePassword($user, 'userpass'));
+                $user->setRoles(['ROLE_USER']);
+                $user->setClient($client);
 
                 $manager->persist($user);
             }
+
             $manager->flush();
         }
 }

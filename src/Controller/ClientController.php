@@ -52,6 +52,7 @@ class ClientController extends AbstractController
      * @SWG\Get(
      *     @SWG\Response(response="200", description="Return a list of clients")
      * )
+     * @Security("is_granted('ROLE_SUPERADMIN')")
      */
     public function listClients(CacheInterface $cache, Request $request)
     {
@@ -94,6 +95,7 @@ class ClientController extends AbstractController
      *     type="number",
      *     description="The id of the client"
      * )
+     * @Security("is_granted('ROLE_SUPERADMIN')")
      */
     public function showClient($id, CacheInterface $cache)
     {
