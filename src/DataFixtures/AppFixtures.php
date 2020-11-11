@@ -13,9 +13,9 @@ class AppFixtures extends Fixture
 {
     private $phoneNames = ['iPhone', 'Samsung', 'Nokia', 'Huawei'];
 
-    private $firstNames = ['Kevin','John', 'Bob', 'Samuel', 'Cedric', 'Etienne', 'Jean', 'Marc', 'Romain', 'Tom'];
+    private $firstNames = ['Kevin', 'John', 'Bob', 'Samuel', 'Cedric', 'Etienne', 'Jean', 'Marc', 'Romain', 'Tom'];
 
-    private $lastNames = ['Wick','Weak', 'London', 'Paris', 'Tokyo', 'Mulot', 'Briant', 'Curry','Mandela', 'Dream'];
+    private $lastNames = ['Wick', 'Weak', 'London', 'Paris', 'Tokyo', 'Mulot', 'Briant', 'Curry', 'Mandela', 'Dream'];
 
     /**
      * @var UserPasswordEncoderInterface
@@ -32,37 +32,35 @@ class AppFixtures extends Fixture
         $client = new Client();
         $client->setUsername('keimuo');
         $client->setPassword($this->encoder->encodePassword($client, 'blackberry'));
-        $client->setRoles(['ROLE_SUPERADMIN']);
+        $client->setRoles(['ROLE_SUPER_ADMIN']);
 
         $manager->persist($client);
 
-            for ($i = 1; $i <= 20; $i++) {
-                $phone = new Phone();
-                $phone->setName($this->phoneNames[random_int(0,3)]. ' ' . random_int(5, 8));
-                $phone->setPrice(random_int(500, 1000));
-                $phone->setDescription('A wonderful phone with ' . random_int(10, 50) . ' tricks');
+        for ($i = 1; $i <= 20; $i++) {
+            $phone = new Phone();
+            $phone->setName($this->phoneNames[random_int(0, 3)] . ' ' . random_int(5, 8));
+            $phone->setPrice(random_int(500, 1000));
+            $phone->setDescription('A wonderful phone with ' . random_int(10, 50) . ' tricks');
 
-                $manager->persist($phone);
+            $manager->persist($phone);
 
-                $client = new Client();
-                $client->setUsername('client' . $i);
-                $client->setPassword($this->encoder->encodePassword($client, 'clientpass'));
-                $client->setRoles(['ROLE_ADMIN']);
+            $client = new Client();
+            $client->setUsername('client' . $i);
+            $client->setPassword($this->encoder->encodePassword($client, 'clientpass'));
+            $client->setRoles(['ROLE_USER']);
 
-                $manager->persist($client);
+            $manager->persist($client);
 
-                $user = new User();
-                $user->setUsername('user' . $i);
-                $user->setFirstName($this->firstNames[random_int(0, 9)]);
-                $user->setLastName($this->lastNames[random_int(0, 9)]);
-                $user->setEmail('usermail' . $i . '@hotmail.fr');
-                $user->setPassword($this->encoder->encodePassword($user, 'userpass'));
-                $user->setRoles(['ROLE_USER']);
-                $user->setClient($client);
+            $user = new User();
+            $user->setUsername('user' . $i);
+            $user->setFirstName($this->firstNames[random_int(0, 9)]);
+            $user->setLastName($this->lastNames[random_int(0, 9)]);
+            $user->setEmail('usermail' . $i . '@hotmail.fr');
+            $user->setClient($client);
 
-                $manager->persist($user);
-            }
-
-            $manager->flush();
+            $manager->persist($user);
         }
+
+        $manager->flush();
+    }
 }
