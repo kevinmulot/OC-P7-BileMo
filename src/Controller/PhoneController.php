@@ -29,7 +29,7 @@ class PhoneController extends AbstractController
 
     public function __construct(PhoneRepository $phoneRepository, PaginatorInterface $paginator)
     {
-        $this->repo     = $phoneRepository;
+        $this->repo = $phoneRepository;
         $this->paginate = $paginator;
     }
 
@@ -57,13 +57,13 @@ class PhoneController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
 
-        $value = $cache->get('phone_list'.$page, function (ItemInterface $item)
+        $value = $cache->get('phone_list' . $page, function (ItemInterface $item)
         use ($page) {
             $item->expiresAfter(3600);
 
             $query = $this->repo->findAll();
 
-            return  $this->paginate->paginate(
+            return $this->paginate->paginate(
                 $query,
                 $page,
                 10
@@ -97,7 +97,7 @@ class PhoneController extends AbstractController
      */
     public function showPhone($id, CacheInterface $cache)
     {
-        return $cache->get('phone_show'.$id, function (ItemInterface $item) use ($id) {
+        return $cache->get('phone_show' . $id, function (ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
 
             return $this->repo->find($id);
@@ -150,12 +150,12 @@ class PhoneController extends AbstractController
      * @SWG\Post(
      *     @SWG\Response(response="201", description="Return a new phone")
      * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @Security("is_granted('ROLE_SUPER_ADMIN')")
      */
     public function addPhone(Phone $phone, EntityManagerInterface $manager, ValidatorInterface $validator): Phone
     {
         $errors = $validator->validate($phone);
-        if(count($errors)) {
+        if (count($errors)) {
             throw new \RuntimeException($errors);
         }
 
@@ -174,9 +174,6 @@ class PhoneController extends AbstractController
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View(statusCode= 204)
-     *
-     * @Security("is_granted('ROLE_SUPERADMIN')")
-     *
      * @SWG\Delete(
      *     @SWG\Response(response="204", description="Delete a specific phone")
      * )
@@ -186,7 +183,7 @@ class PhoneController extends AbstractController
      *     type="number",
      *     description="The id of the phone"
      * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @Security("is_granted('ROLE_SUPER_ADMIN')")
      */
     public function deletePhone(Phone $phone, EntityManagerInterface $manager): void
     {
@@ -247,7 +244,7 @@ class PhoneController extends AbstractController
      *          @SWG\Property(property="Description", type="string")
      *     )
      * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @Security("is_granted('ROLE_SUPER_ADMIN')")
      * @throws Exception
      */
     public function patchPhone(EntityManagerInterface $manager, $id, Phone $phone, ValidatorInterface $validator)
@@ -262,10 +259,11 @@ class PhoneController extends AbstractController
         $result->setPrice($phone->getPrice());
         $result->setDescription($phone->getDescription());
         $result->setName($phone->getName());
-        
+
         $manager->persist($result);
         $manager->flush();
 
         return $result;
     }
+
 }

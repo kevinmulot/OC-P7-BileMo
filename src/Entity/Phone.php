@@ -36,7 +36,7 @@ class Phone
     /**
      * @ORM\Column(type="text")
      * @Serializer\Groups({"show"})
-     *@Serializer\Expose
+     * @Serializer\Expose
      */
     private $description;
 

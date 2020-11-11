@@ -20,7 +20,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
- * @Route("/api/clients", name="client")
+ * @Route("/api", name="client")
  */
 class ClientController extends AbstractController
 {
@@ -29,7 +29,7 @@ class ClientController extends AbstractController
 
     public function __construct(ClientRepository $clientRepository, PaginatorInterface $paginator)
     {
-        $this->repo     = $clientRepository;
+        $this->repo = $clientRepository;
         $this->paginate = $paginator;
     }
 
@@ -41,7 +41,7 @@ class ClientController extends AbstractController
      * @return mixed
      * @throws InvalidArgumentException
      * @Rest\Get(
-     *     path="/",
+     *     path="/clients",
      *     name="client_list"
      * )
      * @Rest\View(
@@ -52,19 +52,19 @@ class ClientController extends AbstractController
      * @SWG\Get(
      *     @SWG\Response(response="200", description="Return a list of clients")
      * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @Security("is_granted('ROLE_SUPER_ADMIN')")
      */
     public function listClients(CacheInterface $cache, Request $request)
     {
         $page = $request->query->getInt('page', 1);
 
-        $value = $cache->get('client_list'.$page, function (ItemInterface $item)
+        $value = $cache->get('client_list' . $page, function (ItemInterface $item)
         use ($page) {
             $item->expiresAfter(3600);
 
             $query = $this->repo->findAll();
 
-            return  $this->paginate->paginate(
+            return $this->paginate->paginate(
                 $query,
                 $page,
                 10
@@ -80,7 +80,7 @@ class ClientController extends AbstractController
      * @return mixed
      * @throws InvalidArgumentException
      * @Rest\Get(
-     *     path="/{id}",
+     *     path="/clients/{id}",
      *     name="show_client",
      *     requirements={"id"="\d+"}
      * )
@@ -95,11 +95,11 @@ class ClientController extends AbstractController
      *     type="number",
      *     description="The id of the client"
      * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @Security("is_granted('ROLE_SUPER_ADMIN')")
      */
     public function showClient($id, CacheInterface $cache)
     {
-        return $cache->get('client_show'.$id, function (ItemInterface $item) use ($id) {
+        return $cache->get('show_client' . $id, function (ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
 
             return $this->repo->find($id);
@@ -110,14 +110,11 @@ class ClientController extends AbstractController
      * @param Client $client
      * @param EntityManagerInterface $manager
      * @Rest\Delete(
-     *     path="/{id}",
+     *     path="/clients/{id}",
      *     name="delete_client",
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View(statusCode= 204)
-     *
-     * @Security("is_granted('ROLE_SUPERADMIN')")
-     *
      * @SWG\Delete(
      *     @SWG\Response(response="204", description="Delete a specific client")
      * )
@@ -143,7 +140,7 @@ class ClientController extends AbstractController
      * @param UserPasswordEncoderInterface $encoder
      * @return Client|object|null
      * @Rest\Patch(
-     *     path="/{id}",
+     *     path="/clients/{id}",
      *     name="client_update",
      *     requirements={"id"="\d+"}
      * )
@@ -209,4 +206,5 @@ class ClientController extends AbstractController
 
         return $result;
     }
+
 }
