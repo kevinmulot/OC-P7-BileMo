@@ -5,13 +5,12 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
-class User implements UserInterface
+class User
 {
     /**
      * @ORM\Id
@@ -64,23 +63,6 @@ class User implements UserInterface
      */
     private $email;
 
-    /**
-     * @ORM\Column(type="json")
-     *
-     * @Serializer\Groups({"show"})
-     *
-     * @Serializer\Expose
-     */
-    private $roles = [];
-
-    /**
-     * @var string The hashed password
-     * @ORM\Column(type="string")
-     * @Assert\NotBlank()
-     * @Assert\Length(min="4")
-     */
-    private $password;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -88,31 +70,12 @@ class User implements UserInterface
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Client", inversedBy="users")
+     * @Serializer\Groups({"show"})
      */
     private $client;
 
     /**
-     * @return mixed
-     */
-    public function getClient()
-    {
-        return $this->client;
-    }
-
-    /**
-     * @param mixed $client
-     * @return User
-     */
-    public function setClient($client): User
-    {
-        $this->client = $client;
-        return $this;
-    }
-
-    /**
-     * A visual identifier that represents this user.
      *
-     * @see UserInterface
      */
     public function getUsername(): string
     {
@@ -122,40 +85,6 @@ class User implements UserInterface
     public function setUsername(string $username): self
     {
         $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getPassword(): string
-    {
-        return (string)$this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
 
         return $this;
     }
@@ -215,19 +144,20 @@ class User implements UserInterface
     }
 
     /**
-     * @see UserInterface
+     * @return mixed
      */
-    public function getSalt()
+    public function getClient()
     {
-        // not needed when using the "bcrypt" algorithm in security.yaml
+        return $this->client;
     }
 
     /**
-     * @see UserInterface
+     * @param mixed $client
+     * @return User
      */
-    public function eraseCredentials()
+    public function setClient($client): User
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->client = $client;
+        return $this;
     }
 }
