@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Repository\ClientRepository;
+use App\Service\CacheManager;
+use RuntimeException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -20,29 +22,42 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
- * @Route("/api", name="client")
+ * Class ClientController
+ * @package App\Controller
+ * @Route("/api")
  */
 class ClientController extends AbstractController
 {
-    private $repo;
     private $paginate;
+    /**
+     * @var CacheInterface
+     */
+    private $cache;
+    /**
+     * @var CacheManager
+     */
+    private $cacheManager;
+    /**
+     * @var ClientRepository
+     */
+    private $clientRepository;
 
-    public function __construct(ClientRepository $clientRepository, PaginatorInterface $paginator)
+    public function __construct(ClientRepository $clientRepository, PaginatorInterface $paginator, CacheInterface $cache, CacheManager $cacheManager)
     {
-        $this->repo = $clientRepository;
+        $this->clientRepository = $clientRepository;
         $this->paginate = $paginator;
+        $this->cache = $cache;
+        $this->cacheManager = $cacheManager;
     }
 
     /**
      *
-     * @param CacheInterface $cache
      * @param Request $request
-     *
      * @return mixed
      * @throws InvalidArgumentException
      * @Rest\Get(
      *     path="/clients",
-     *     name="client_list"
+     *     name="clients_list"
      * )
      * @Rest\View(
      *     statusCode= 200,
@@ -50,19 +65,21 @@ class ClientController extends AbstractController
      * )
      *
      * @SWG\Get(
+     *     summary="Get the list of clients (required role : admin)",
      *     @SWG\Response(response="200", description="Return a list of clients")
      * )
-     * @Security("is_granted('ROLE_SUPER_ADMIN')")
+     * @SWG\Tag(name="Clients")
+     * @Security("is_granted('ROLE_ADMIN')")
      */
-    public function listClients(CacheInterface $cache, Request $request)
+    public function listClients(Request $request)
     {
         $page = $request->query->getInt('page', 1);
 
-        $value = $cache->get('client_list' . $page, function (ItemInterface $item)
+        $value = $this->cache->get('clients_list' . $page, function (ItemInterface $item)
         use ($page) {
             $item->expiresAfter(3600);
 
-            $query = $this->repo->findAll();
+            $query = $this->clientRepository->findAll();
 
             return $this->paginate->paginate(
                 $query,
@@ -76,7 +93,6 @@ class ClientController extends AbstractController
 
     /**
      * @param $id
-     * @param CacheInterface $cache
      * @return mixed
      * @throws InvalidArgumentException
      * @Rest\Get(
@@ -87,83 +103,62 @@ class ClientController extends AbstractController
      * @Rest\View(statusCode= 200, serializerGroups={"show"})
      *
      * @SWG\Get(
+     *     summary="Display a specific client (required role : admin)",
      *     @SWG\Response(response="200", description="Return a client details")
      * )
      * @SWG\Parameter(
      *     name="id",
      *     in="path",
      *     type="number",
-     *     description="The id of the client"
+     *     description="Client id"
      * )
-     * @Security("is_granted('ROLE_SUPER_ADMIN')")
+     * @SWG\Tag(name="Clients")
+     * @Security("is_granted('ROLE_ADMIN')")
      */
-    public function showClient($id, CacheInterface $cache)
+    public function showClient($id)
     {
-        return $cache->get('show_client' . $id, function (ItemInterface $item) use ($id) {
+        return $this->cache->get('client' . $id, function (ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
 
-            return $this->repo->find($id);
+            return $this->clientRepository->find($id);
         });
     }
 
     /**
      * @param Client $client
-     * @param EntityManagerInterface $manager
-     * @Rest\Delete(
-     *     path="/clients/{id}",
-     *     name="delete_client",
-     *     requirements={"id"="\d+"}
-     * )
-     * @Rest\View(statusCode= 204)
-     * @SWG\Delete(
-     *     @SWG\Response(response="204", description="Delete a specific client")
-     * )
-     * @SWG\Parameter(
-     *     name="id",
-     *     in="path",
-     *     type="number",
-     *     description="The id of the client"
-     * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
-     */
-    public function deleteClient(Client $client, EntityManagerInterface $manager): void
-    {
-        $manager->remove($client);
-        $manager->flush();
-    }
-
-    /**
-     * @param EntityManagerInterface $manager
-     * @param $id
-     * @param Client $client
+     * @param Client $newClient
      * @param ValidatorInterface $validator
      * @param UserPasswordEncoderInterface $encoder
-     * @return Client|object|null
-     * @Rest\Patch(
+     * @return mixed
+     * @throws InvalidArgumentException
+     * @Rest\Put(
      *     path="/clients/{id}",
-     *     name="client_update",
+     *     name="update_client",
      *     requirements={"id"="\d+"}
-     * )
-     * @Rest\View(statusCode= 200)
      *
-     * @SWG\Patch(
-     *     @SWG\Response(response="200", description="Update client")
      * )
-     * @ParamConverter("client", converter="fos_rest.request_body")
+     * @ParamConverter("newClient", converter="fos_rest.request_body")
+     * @Rest\View(statusCode= 200,
+     *     serializerGroups={"secret"})
+     *
+     * @SWG\Put(
+     *     summary="Update logged client (required role : admin)",
+     *     @SWG\Response(response="200", description="Update a specific client")
+     * )
      * @SWG\Parameter(
      *     name="id",
      *     in="path",
      *     type="number",
-     *     description="The id of the client"
+     *     description="Client id"
      * )
      * @SWG\Parameter(
      *     name="username",
      *     in="body",
      *     type="string",
-     *     description="Name",
-     *     required=true,
+     *     description="Username",
+     *     required=false,
      *     @SWG\Schema(
-     *          @SWG\Property(property="name", type="string")
+     *          @SWG\Property(property="username", type="string")
      *     )
      * )
      * @SWG\Parameter(
@@ -171,40 +166,62 @@ class ClientController extends AbstractController
      *     in="body",
      *     type="string",
      *     description="Password",
-     *     required=true,
+     *     required=false,
      *     @SWG\Schema(
-     *          @SWG\Property(property="price", type="integer")
+     *          @SWG\Property(property="password", type="string")
      *     )
      * )
-     * @SWG\Parameter(
-     *     name="role",
-     *     in="body",
-     *     type="string",
-     *     description="Role",
-     *     required=true,
-     *     @SWG\Schema(
-     *          @SWG\Property(property="Description", type="string")
-     *     )
-     * )
-     * @Security("is_granted('ROLE_SUPERADMIN')")
+     * @SWG\Tag(name="Clients")
+     * @Security("is_granted('ROLE_ADMIN')")
      */
-    public function patchClient(EntityManagerInterface $manager, $id, Client $client, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder)
+    public function updateClient(Client $client, Client $newClient, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder)
     {
-        $result = $manager->getRepository(Client::class)->findOneBy(['id' => $id]);
-
-        $errors = $validator->validate($result);
-        if (count($errors)) {
-            throw new \RuntimeException('Invalid argument(s) detected');
+        if ($newClient->getUsername()) {
+            $client->setUsername($newClient->getUsername());
+        }
+        if ($newClient->getPassword()) {
+            $client->setPassword($encoder->encodePassword($newClient, $newClient->getPassword()));
         }
 
-        $result->setUsername($client->getUsername());
-        $result->setPassword($encoder->encodePassword($client, $client->getPassword()));
-        $result->setRoles([$client->getRoles()]);
+        $errors = $validator->validate($client);
+        if (count($errors)) {
+            throw new RuntimeException('Invalid argument(s) detected');
+        }
 
-        $manager->persist($result);
-        $manager->flush();
+        $this->getDoctrine()->getManager()->flush();
 
-        return $result;
+        $this->cacheManager->deleteUserCache($this->cache, $client->getId());
+
+        return $client;
     }
 
+    /**
+     * @param Client $client
+     * @param EntityManagerInterface $manager
+     * @throws InvalidArgumentException
+     * @Rest\Delete(
+     *     path="/clients/{id}",
+     *     name="delete_client",
+     *     requirements={"id"="\d+"}
+     * )
+     * @Rest\View(statusCode= 204)
+     * @SWG\Delete(
+     *     summary="Delete a specific client (required role : admin)",
+     *     @SWG\Response(response="204", description="Return an empty body")
+     * )
+     * @SWG\Parameter(
+     *     name="id",
+     *     in="path",
+     *     type="number",
+     *     description="Client id"
+     * )
+     * @SWG\Tag(name="Clients")
+     * @Security("is_granted('ROLE_ADMIN')")
+     */
+    public function deleteClient(Client $client, EntityManagerInterface $manager): void
+    {
+        $this->cacheManager->deleteClientCache($this->cache, $client->getId());
+        $manager->remove($client);
+        $manager->flush();
+    }
 }
