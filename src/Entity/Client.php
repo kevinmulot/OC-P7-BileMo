@@ -7,10 +7,48 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * @ORM\Entity(repositoryClass=ClientRepository::class)
  * @Serializer\ExclusionPolicy("All")
+ *
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "show_client",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"list"})
+ * )
+ *  * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "clients_list",
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"show"})
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "update_client",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"list","show"})
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "delete_client",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"list","show"})
+ * )
  */
 class Client implements UserInterface
 {
@@ -18,9 +56,7 @@ class Client implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     *
      * @Serializer\Groups({"list", "show"})
-     *
      * @Serializer\Expose
      */
     private $id;
@@ -31,15 +67,12 @@ class Client implements UserInterface
      * @Assert\Length(min="2")
      * @Serializer\Groups({"list", "show"})
      *
-     * @Serializer\Expose
      */
     private $username;
 
     /**
      * @ORM\Column(type="json")
-     *
      * @Serializer\Groups({"show"})
-     *
      * @Serializer\Expose
      */
     private $roles = [];
@@ -49,14 +82,13 @@ class Client implements UserInterface
      * @ORM\Column(type="string")
      * @Assert\NotBlank()
      * @Assert\Length(min="4")
+     * @Serializer\Groups({"secret"})
      * @Serializer\Expose
-     * @Serializer\Groups({"hidden"})
      */
     private $password;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\User", mappedBy="client", orphanRemoval=true)
-     *
      */
     private $users;
 
