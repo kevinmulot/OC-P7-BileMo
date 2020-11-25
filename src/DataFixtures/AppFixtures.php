@@ -30,9 +30,9 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $client = new Client();
-        $client->setUsername('keimuo');
-        $client->setPassword($this->encoder->encodePassword($client, 'blackberry'));
-        $client->setRoles(['ROLE_SUPER_ADMIN']);
+        $client->setUsername('bilemo');
+        $client->setPassword($this->encoder->encodePassword($client, 'admin'));
+        $client->setRoles(['ROLE_ADMIN']);
 
         $manager->persist($client);
 
@@ -60,7 +60,6 @@ class AppFixtures extends Fixture
 
             $manager->persist($user);
         }
-
         $manager->flush();
     }
 }
