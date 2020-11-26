@@ -1,9 +1,25 @@
 nelmio_api_doc:
+    models: { use_jms: false }
     documentation:
+        servers:
+            - url: http://127.0.0.1:8000/api/doc
+              description: API over HTTP
+            - url: https://127.0.0.1:8000/api/doc
+              description: API over HTTPS
+        securityDefinitions:
+            Bearer:
+                type: apiKey
+                description: 'Value: Bearer Token'
+                name: Authorization
         info:
             title: BileMo
-            description: This is an awesome app!
-            version: 1.0.0
+            description: This is an API for project 7 of the PHP/Symfony course on Openclassrooms
+            version: 0.1.2
+        host: 127.0.0.1:8000
+        schemes: [http, https]
     areas: # to filter documented areas
         path_patterns:
             - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
+            - ^/login
+            - ^/register
+            - ^/users
