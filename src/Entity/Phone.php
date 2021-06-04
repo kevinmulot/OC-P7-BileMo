@@ -94,7 +94,6 @@ class Phone
     /**
      * @ORM\Column(type="integer")
      * @Serializer\Groups({"show"})
-     * @Assert\NotBlank()
      * @Assert\Range(min="0", max="1500")
      *
      * @Serializer\Expose

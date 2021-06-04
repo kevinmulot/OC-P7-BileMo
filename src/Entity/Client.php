@@ -66,7 +66,7 @@ class Client implements UserInterface
      * @Assert\NotBlank()
      * @Assert\Length(min="2")
      * @Serializer\Groups({"list", "show"})
-     *
+     * @Serializer\Expose
      */
     private $username;
 
