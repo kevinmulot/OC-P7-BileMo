@@ -77,13 +77,14 @@ class UserController extends AbstractController
     public function listUsers(CacheInterface $cache, Request $request, SecurityFilter $security)
     {
         $page = $request->query->getInt('page', 1);
+        $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
 
-        if (in_array("ROLE_ADMIN", $security->getUser()->getRoles(), true)) {
+        if (in_array("ROLE_ADMIN", $loggedClient->getRoles(), true)) {
             $value = $cache->get('users_list' . $page, function (ItemInterface $item)
             use ($page) {
                 $item->expiresAfter(3600);
 
-                $query = $this->repo->findAll();
+                $query = $this->userRepository->findAll();
 
                 return $this->paginate->paginate(
                     $query,
@@ -94,7 +95,6 @@ class UserController extends AbstractController
             return $value->getItems();
         }
 
-        $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
         $clientId = $loggedClient->getId();
 
         $value = $cache->get($clientId . 'users_list' . $page, function (ItemInterface $item)
@@ -109,6 +109,7 @@ class UserController extends AbstractController
                 10
             );
         });
+
         return $value->getItems();
     }
 
@@ -144,6 +145,7 @@ class UserController extends AbstractController
     public function showUser(User $user, $id, CacheInterface $cache, SecurityFilter $security)
     {
         $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
+
         if ($loggedClient === $user->getClient() || in_array("ROLE_ADMIN", $loggedClient->getRoles(), true)) {
             return $cache->get('user' . $id, function (ItemInterface $item)
             use ($id) {
@@ -216,6 +218,7 @@ class UserController extends AbstractController
     public function addUser(User $user, EntityManagerInterface $manager, ValidatorInterface $validator): User
     {
         $errors = $validator->validate($user);
+
         if (count($errors)) {
             throw new RuntimeException($errors);
         }
@@ -242,7 +245,8 @@ class UserController extends AbstractController
      *     requirements={"id"="\d+"}
      * )
      * @ParamConverter("newUser", converter="fos_rest.request_body")
-     * @Rest\View(statusCode= 200)
+     * @Rest\View(statusCode= 200,
+     * serializerGroups={"show"})
      *
      * @SWG\Put(
      *     summary="Update a specific user",
@@ -299,7 +303,8 @@ class UserController extends AbstractController
     public function updateUser(User $user, User $newUser, ValidatorInterface $validator, SecurityFilter $security, CacheInterface $cache, CacheManager $cacheManager)
     {
         $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
-        if ($loggedClient !== $user->getClient() || in_array("ROLE_ADMIN", $loggedClient->getRoles(), false)) {
+
+        if ($loggedClient !== $user->getClient()) {
             throw new AccessDeniedException();
         }
         if ($newUser->getUsername()) {
@@ -324,7 +329,7 @@ class UserController extends AbstractController
         }
 
         $this->getDoctrine()->getManager()->flush();
-        $cacheManager->deleteUserCache($cache, $user->getId());
+        $cacheManager->deleteCache($cache, $user->getId(), "user");
         $cacheManager->deleteCustomerCache($cache, $user->getClient()->getId());
 
         return $user;
@@ -358,8 +363,9 @@ class UserController extends AbstractController
     public function deleteUser(User $user, entityManagerInterface $manager, SecurityFilter $security, CacheInterface $cache, CacheManager $cacheManager): void
     {
         $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
+
         if ($loggedClient === $user->getClient() || in_array("ROLE_ADMIN", $loggedClient->getRoles(), true)) {
-            $cacheManager->deleteUserCache($cache, $user->getId());
+            $cacheManager->deleteCache($cache, $user->getId(), 'user');
             $cacheManager->deleteCustomerCache($cache, $user->getClient()->getId());
             $manager->remove($user);
             $manager->flush();

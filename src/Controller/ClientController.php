@@ -20,6 +20,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Swagger\Annotations as SWG;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Component\Security\Core\Security as SecurityFilter;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Class ClientController
@@ -66,13 +68,19 @@ class ClientController extends AbstractController
      *
      * @SWG\Get(
      *     summary="Get the list of clients (required role : admin)",
-     *     @SWG\Response(response="200", description="Return a list of clients")
+     *     @SWG\Response(response="200", description="Return a list of clients or just your details if you are not admin")
      * )
      * @SWG\Tag(name="Clients")
-     * @Security("is_granted('ROLE_ADMIN')")
      */
-    public function listClients(Request $request)
+    public function listClients(Request $request, SecurityFilter $security)
     {
+        $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
+
+        if (in_array("ROLE_ADMIN", $loggedClient->getRoles(), false)) {
+
+            return $loggedClient;
+        }
+
         $page = $request->query->getInt('page', 1);
 
         $value = $this->cache->get('clients_list' . $page, function (ItemInterface $item)
@@ -128,6 +136,7 @@ class ClientController extends AbstractController
      * @param Client $client
      * @param Client $newClient
      * @param ValidatorInterface $validator
+     * @param SecurityFilter $security
      * @param UserPasswordEncoderInterface $encoder
      * @return mixed
      * @throws InvalidArgumentException
@@ -139,11 +148,11 @@ class ClientController extends AbstractController
      * )
      * @ParamConverter("newClient", converter="fos_rest.request_body")
      * @Rest\View(statusCode= 200,
-     *     serializerGroups={"secret"})
+     *     serializerGroups={"show"})
      *
      * @SWG\Put(
-     *     summary="Update logged client (required role : admin)",
-     *     @SWG\Response(response="200", description="Update a specific client")
+     *     summary="Update logged client",
+     *     @SWG\Response(response="200", description="Update your own client details")
      * )
      * @SWG\Parameter(
      *     name="id",
@@ -166,31 +175,37 @@ class ClientController extends AbstractController
      *     in="body",
      *     type="string",
      *     description="Password",
-     *     required=false,
+     *     required=true,
      *     @SWG\Schema(
      *          @SWG\Property(property="password", type="string")
      *     )
      * )
      * @SWG\Tag(name="Clients")
-     * @Security("is_granted('ROLE_ADMIN')")
      */
-    public function updateClient(Client $client, Client $newClient, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder)
+    public function updateClient(Client $client, Client $newClient, ValidatorInterface $validator, SecurityFilter $security, UserPasswordEncoderInterface $encoder)
     {
+        $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
+
+        if ($loggedClient !== $client) {
+            throw new AccessDeniedException();
+        }
+
         if ($newClient->getUsername()) {
             $client->setUsername($newClient->getUsername());
         }
+
         if ($newClient->getPassword()) {
             $client->setPassword($encoder->encodePassword($newClient, $newClient->getPassword()));
         }
 
         $errors = $validator->validate($client);
+
         if (count($errors)) {
             throw new RuntimeException('Invalid argument(s) detected');
         }
 
         $this->getDoctrine()->getManager()->flush();
-
-        $this->cacheManager->deleteUserCache($this->cache, $client->getId());
+        $this->cacheManager->deleteCache($this->cache, $client->getId(), 'client');
 
         return $client;
     }
@@ -220,7 +235,7 @@ class ClientController extends AbstractController
      */
     public function deleteClient(Client $client, EntityManagerInterface $manager): void
     {
-        $this->cacheManager->deleteClientCache($this->cache, $client->getId());
+        $this->cacheManager->deleteCache($this->cache, $client->getId(), 'client');
         $manager->remove($client);
         $manager->flush();
     }

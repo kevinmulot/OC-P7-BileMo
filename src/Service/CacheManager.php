@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Service;
-
 
 use App\Repository\ClientRepository;
 use App\Repository\PhoneRepository;
@@ -18,7 +16,7 @@ class CacheManager
 
     public function __construct(ClientRepository $clientRepository, UserRepository $userRepository, PhoneRepository $phoneRepository)
     {
-        $this->phoneRepo = $clientRepository;
+        $this->clientRepo = $clientRepository;
         $this->userRepo = $userRepository;
         $this->phoneRepo = $phoneRepository;
     }
@@ -26,42 +24,32 @@ class CacheManager
     /**
      * @param CacheInterface $cache
      * @param null $id
+     * @param $data
      * @throws InvalidArgumentException
      */
-    public function deleteClientCache(CacheInterface $cache, $id = null): void
+    public function deleteCache(CacheInterface $cache, $id = null, $data): void
     {
         if ($id) {
-            $cache->delete('client' . $id);
+            $cache->delete($data . $id);
         }
 
-        $clientCount = count($this->clientRepo->findAll());
+        if ($data === 'user') {
+            $Count = count($this->userRepo->findAll());
+        }
+
+        if ($data === 'client') {
+            $Count = count($this->clientRepo->findAll());
+        }
+
+        if ($data === 'phone') {
+            $Count = count($this->phoneRepo->findAll());
+        }
 
         $itemsPerPage = 10;
-        $pageCount = (int)ceil($clientCount / $itemsPerPage);
+        $pageCount = (int)ceil($Count / $itemsPerPage);
 
         for ($i = 1; $i < $pageCount; $i++) {
-            $cache->delete('clients_list' . $i);
-        }
-    }
-
-    /**
-     * @param CacheInterface $cache
-     * @param null $id
-     * @throws InvalidArgumentException
-     */
-    public function deleteUserCache(CacheInterface $cache, $id = null): void
-    {
-        if ($id) {
-            $cache->delete('user' . $id);
-        }
-
-        $userCount = count($this->userRepo->findAll());
-
-        $itemsPerPage = 10;
-        $pageCount = (int)ceil($userCount / $itemsPerPage);
-
-        for ($i = 1; $i < $pageCount; $i++) {
-            $cache->delete('users_list' . $i);
+            $cache->delete($data . 's_list' . $i);
         }
     }
 
@@ -80,27 +68,6 @@ class CacheManager
 
         for ($i = 1; $i < $pageCount; $i++) {
             $cache->delete($clientId . 'users_list' . $i);
-        }
-    }
-
-    /**
-     * @param CacheInterface $cache
-     * @param null $id
-     * @throws InvalidArgumentException
-     */
-    public function deletePhoneCache(CacheInterface $cache, $id = null): void
-    {
-        if ($id) {
-            $cache->delete('phone' . $id);
-        }
-
-        $phoneCount = count($this->phoneRepo->findAll());
-
-        $itemsPerPage = 10;
-        $pageCount = (int)ceil($phoneCount / $itemsPerPage);
-
-        for ($i = 1; $i < $pageCount; $i++) {
-            $cache->delete('phones_list' . $i);
         }
     }
 }
