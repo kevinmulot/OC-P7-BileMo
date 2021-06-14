@@ -45,6 +45,13 @@ class PhoneController extends AbstractController
      */
     private $cacheManager;
 
+    /**
+     * PhoneController constructor.
+     * @param PhoneRepository $phoneRepository
+     * @param PaginatorInterface $paginator
+     * @param CacheInterface $cache
+     * @param CacheManager $cacheManager
+     */
     public function __construct(PhoneRepository $phoneRepository, PaginatorInterface $paginator, CacheInterface $cache, CacheManager $cacheManager)
     {
         $this->repo = $phoneRepository;
@@ -82,11 +89,7 @@ class PhoneController extends AbstractController
 
             $query = $this->repo->findAll();
 
-            return $this->paginate->paginate(
-                $query,
-                $page,
-                10
-            );
+            return $this->paginate->paginate($query, $page, 10);
         });
 
         return $value->getItems();

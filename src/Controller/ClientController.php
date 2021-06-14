@@ -30,6 +30,9 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  */
 class ClientController extends AbstractController
 {
+    /**
+     * @var PaginatorInterface
+     */
     private $paginate;
     /**
      * @var CacheInterface
@@ -44,6 +47,13 @@ class ClientController extends AbstractController
      */
     private $clientRepository;
 
+    /**
+     * ClientController constructor.
+     * @param ClientRepository $clientRepository
+     * @param PaginatorInterface $paginator
+     * @param CacheInterface $cache
+     * @param CacheManager $cacheManager
+     */
     public function __construct(ClientRepository $clientRepository, PaginatorInterface $paginator, CacheInterface $cache, CacheManager $cacheManager)
     {
         $this->clientRepository = $clientRepository;
@@ -76,7 +86,7 @@ class ClientController extends AbstractController
     {
         $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
 
-        if (in_array("ROLE_ADMIN", $loggedClient->getRoles(), false)) {
+        if (in_array("ROLE_USER", $loggedClient->getRoles(), true)) {
 
             return $loggedClient;
         }
@@ -89,11 +99,7 @@ class ClientController extends AbstractController
 
             $query = $this->clientRepository->findAll();
 
-            return $this->paginate->paginate(
-                $query,
-                $page,
-                10
-            );
+            return $this->paginate->paginate($query, $page, 10);
         });
 
         return $value->getItems();

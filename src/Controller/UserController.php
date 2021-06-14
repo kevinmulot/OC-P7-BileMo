@@ -45,6 +45,12 @@ class UserController extends AbstractController
      */
     private $clientRepository;
 
+    /**
+     * UserController constructor.
+     * @param UserRepository $userRepository
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     */
     public function __construct(UserRepository $userRepository, PaginatorInterface $paginator, ClientRepository $clientRepository)
     {
         $this->userRepository = $userRepository;
@@ -86,11 +92,7 @@ class UserController extends AbstractController
 
                 $query = $this->userRepository->findAll();
 
-                return $this->paginate->paginate(
-                    $query,
-                    $page,
-                    10
-                );
+                return $this->paginate->paginate($query, $page, 10);
             });
             return $value->getItems();
         }
@@ -103,11 +105,7 @@ class UserController extends AbstractController
 
             $query = $this->userRepository->findBy(['client' => $clientId]);
 
-            return $this->paginate->paginate(
-                $query,
-                $page,
-                10
-            );
+            return $this->paginate->paginate($query, $page, 10);
         });
 
         return $value->getItems();
@@ -154,6 +152,7 @@ class UserController extends AbstractController
                 return $this->userRepository->findOneBy(['id' => $id]);
             });
         }
+        throw new AccessDeniedException();
     }
 
     /**
@@ -307,6 +306,26 @@ class UserController extends AbstractController
         if ($loggedClient !== $user->getClient()) {
             throw new AccessDeniedException();
         }
+
+        $errors = $validator->validate($this->checkUpdate($user, $newUser));
+        if (count($errors)) {
+            throw new RuntimeException('Invalid argument(s) detected');
+        }
+
+        $this->getDoctrine()->getManager()->flush();
+        $cacheManager->deleteCache($cache, $user->getId(), "user");
+        $cacheManager->deleteCustomerCache($cache, $user->getClient()->getId());
+
+        return $user;
+    }
+
+    /**
+     * @param $user
+     * @param $newUser
+     * @return mixed
+     */
+    public function checkUpdate($user, $newUser)
+    {
         if ($newUser->getUsername()) {
             $user->setUsername($newUser->getUsername());
         }
@@ -322,16 +341,6 @@ class UserController extends AbstractController
         if ($newUser->getEmail()) {
             $user->setEmail($newUser->getEmail());
         }
-
-        $errors = $validator->validate($user);
-        if (count($errors)) {
-            throw new RuntimeException('Invalid argument(s) detected');
-        }
-
-        $this->getDoctrine()->getManager()->flush();
-        $cacheManager->deleteCache($cache, $user->getId(), "user");
-        $cacheManager->deleteCustomerCache($cache, $user->getClient()->getId());
-
         return $user;
     }
 

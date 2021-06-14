@@ -8,12 +8,31 @@ use App\Repository\UserRepository;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 
+/**
+ * Class CacheManager
+ * @package App\Service
+ */
 class CacheManager
 {
+    /**
+     * @var PhoneRepository
+     */
     private $phoneRepo;
+    /**
+     * @var UserRepository
+     */
     private $userRepo;
+    /**
+     * @var ClientRepository
+     */
     private $clientRepo;
 
+    /**
+     * CacheManager constructor.
+     * @param ClientRepository $clientRepository
+     * @param UserRepository $userRepository
+     * @param PhoneRepository $phoneRepository
+     */
     public function __construct(ClientRepository $clientRepository, UserRepository $userRepository, PhoneRepository $phoneRepository)
     {
         $this->clientRepo = $clientRepository;
@@ -23,11 +42,11 @@ class CacheManager
 
     /**
      * @param CacheInterface $cache
-     * @param null $id
+     * @param $id
      * @param $data
      * @throws InvalidArgumentException
      */
-    public function deleteCache(CacheInterface $cache, $id = null, $data): void
+    public function deleteCache(CacheInterface $cache, $id, $data): void
     {
         if ($id) {
             $cache->delete($data . $id);
