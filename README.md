@@ -1,4 +1,5 @@
 # Bilemo
+
 My seventh OpenClassRooms Project with PHP/Symphony.
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/71d0962974834783bcf51671bf44f6f6)](https://www.codacy.com/gh/kevinmulot/OC-P7-BileMo/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kevinmulot/OC-P7-BileMo&amp;utm_campaign=Badge_Grade)
@@ -10,7 +11,7 @@ My seventh OpenClassRooms Project with PHP/Symphony.
 
 ## Installation
 
-### Prerequisites 
+### Prerequisites
 
 Install GitHub (<https://gist.github.com/derhuerst/1b15ff4652a867391f03>) \
 Install Composer (<https://getcomposer.org>) \
@@ -22,13 +23,15 @@ Prefer MySQL 5.6 or higher.
 ### Download
 
 [![Repo Size](https://img.shields.io/github/repo-size/kevinmulot/OC-P7-BileMo?label=Repo+Size)](https://github.com/kevinmulot/OC-P7-BileMo) \
-Execute the following command line to download the project into your chosen directory:
-```
+Execute the following command line to download the project into your chosen directory :
+
+```shell
 git clone https://github.com/kevinmulot/OC-P7-BileMo.git
 ```
 
-Install dependencies by running the following command:
-```
+Install dependencies by running the following command :
+
+```shell
 composer install
 ```
 
@@ -49,29 +52,35 @@ DATABASE_URL=mysql://username:password@127.0.0.1:3306/bilemo?serverVersion=5.7
 JWT_PASSPHRASE=#your passphrase
 ```
 
-Set your database connection in .env file `` [DATABASE_URL] (l.28)``.
-```
+Set your database connection in .env file ``[DATABASE_URL] (l.28)``.
+
+```shell
 DATABASE_URL=mysql://root:@127.0.0.1:3306/bilemo?serverVersion=5.7
 ```
 
 Create database:
-```
+
+```shell
 php bin/console doctrine:database:create
 ```
 
 Build the database structure using the following command:
-```
+
+```shell
 php bin/console doctrine:migrations:migrate
 ```
 
 Load the data fixtures
-```
+
+```shell
 php bin/console doctrine:fixtures:load
 ```
+
 ### Run the application
 
 Launch the Apache/Php runtime environment by using :
-```
+
+```shell
 php bin/console server:run
 ```
 
@@ -79,6 +88,11 @@ php bin/console server:run
 
 Default username ```bilemo```\
 Default password for the user is ```admin```
+
+### Default Client credentials
+
+Default username ```client#```\
+Default password for the user is ```clientpass``
 
 ### Login
 

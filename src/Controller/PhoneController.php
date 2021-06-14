@@ -45,6 +45,13 @@ class PhoneController extends AbstractController
      */
     private $cacheManager;
 
+    /**
+     * PhoneController constructor.
+     * @param PhoneRepository $phoneRepository
+     * @param PaginatorInterface $paginator
+     * @param CacheInterface $cache
+     * @param CacheManager $cacheManager
+     */
     public function __construct(PhoneRepository $phoneRepository, PaginatorInterface $paginator, CacheInterface $cache, CacheManager $cacheManager)
     {
         $this->repo = $phoneRepository;
@@ -82,11 +89,7 @@ class PhoneController extends AbstractController
 
             $query = $this->repo->findAll();
 
-            return $this->paginate->paginate(
-                $query,
-                $page,
-                10
-            );
+            return $this->paginate->paginate($query, $page, 10);
         });
 
         return $value->getItems();
@@ -176,6 +179,7 @@ class PhoneController extends AbstractController
     public function addPhone(Phone $phone, EntityManagerInterface $manager, ValidatorInterface $validator): Phone
     {
         $errors = $validator->validate($phone);
+
         if (count($errors)) {
             throw new RuntimeException($errors);
         }
@@ -215,7 +219,7 @@ class PhoneController extends AbstractController
      *     in="body",
      *     type="string",
      *     description="Name",
-     *     required=false,
+     *     required=true,
      *     @SWG\Schema(
      *          @SWG\Property(property="name", type="string")
      *     )
@@ -263,8 +267,7 @@ class PhoneController extends AbstractController
         }
 
         $this->getDoctrine()->getManager()->flush();
-
-        $this->cacheManager->deleteUserCache($this->cache, $phone->getId());
+        $this->cacheManager->deleteCache($this->cache, $phone->getId(), 'phone');
 
         return $phone;
     }
@@ -294,7 +297,7 @@ class PhoneController extends AbstractController
      */
     public function deletePhone(Phone $phone, EntityManagerInterface $manager): void
     {
-        $this->cacheManager->deletePhoneCache($this->cache, $phone->getId());
+        $this->cacheManager->deleteCache($this->cache, $phone->getId(), 'phone');
         $manager->remove($phone);
         $manager->flush();
     }
