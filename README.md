@@ -92,7 +92,7 @@ Default password for the user is ```admin```
 ### Default Client credentials
 
 Default username ```client#```\
-Default password for the user is ```clientpass``
+Default password for the user is ```clientpass```
 
 ### Login
 
