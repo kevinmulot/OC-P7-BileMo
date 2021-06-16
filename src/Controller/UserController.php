@@ -214,15 +214,16 @@ class UserController extends AbstractController
      *
      * @SWG\Tag(name="Users")
      */
-    public function addUser(User $user, EntityManagerInterface $manager, ValidatorInterface $validator): User
+    public function addUser(User $user, EntityManagerInterface $manager, ValidatorInterface $validator, SecurityFilter $security): User
     {
         $errors = $validator->validate($user);
 
         if (count($errors)) {
             throw new RuntimeException($errors);
         }
-
-        $user->setClient($user->getClient());
+        $loggedClient = $this->clientRepository->findOneBy(["username" => $security->getUser()->getUsername()]);
+        
+        $user->setClient($loggedClient);
         $manager->persist($user);
         $manager->flush();
 
@@ -341,6 +342,7 @@ class UserController extends AbstractController
         if ($newUser->getEmail()) {
             $user->setEmail($newUser->getEmail());
         }
+        
         return $user;
     }
 
