@@ -109,7 +109,7 @@ Use your navigator to access the documentation with this URL ```https://example.
 
 BileMo has continuous support !
 
-[![Project Maintained](https://img.shields.io/maintenance/yes/2020.svg?label=Maintained)](https://github.com/kevinmulot/OC-P7-BileMo)
+[![Project Maintained](https://img.shields.io/maintenance/yes/2021.svg?label=Maintained)](https://github.com/kevinmulot/OC-P7-BileMo)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/kevinmulot/OC-P7-BileMo.svg?label=Last+Commit)](https://github.com/kevinmulot/OC-P7-BileMo/commits/master)
 
 ## Issues
