@@ -159,6 +159,9 @@ class UserController extends AbstractController
      * @param User $user
      * @param EntityManagerInterface $manager
      * @param ValidatorInterface $validator
+     * @param CacheInterface $cache
+     * @param CacheManager $cacheManager
+     * @param SecurityFilter $security
      * @return User
      * @Rest\Post(
      *     path="/users",
@@ -214,7 +217,7 @@ class UserController extends AbstractController
      *
      * @SWG\Tag(name="Users")
      */
-    public function addUser(User $user, EntityManagerInterface $manager, ValidatorInterface $validator, SecurityFilter $security): User
+    public function addUser(User $user, EntityManagerInterface $manager, ValidatorInterface $validator, SecurityFilter $security, CacheInterface $cache, CacheManager $cacheManager): User
     {
         $errors = $validator->validate($user);
 
@@ -226,6 +229,9 @@ class UserController extends AbstractController
         $user->setClient($loggedClient);
         $manager->persist($user);
         $manager->flush();
+
+        $cacheManager->deleteCache($cache, $user->getId(), "user");
+        $cacheManager->deleteCustomerCache($cache, $user->getClient()->getId());
 
         return $user;
     }
