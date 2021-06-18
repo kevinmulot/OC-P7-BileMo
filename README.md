@@ -52,12 +52,6 @@ DATABASE_URL=mysql://username:password@127.0.0.1:3306/bilemo?serverVersion=5.7
 JWT_PASSPHRASE=#your passphrase
 ```
 
-Set your database connection in .env file ``[DATABASE_URL] (l.28)``.
-
-```shell
-DATABASE_URL=mysql://root:@127.0.0.1:3306/bilemo?serverVersion=5.7
-```
-
 Create database:
 
 ```shell
